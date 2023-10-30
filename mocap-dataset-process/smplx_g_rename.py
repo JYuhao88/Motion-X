@@ -1,6 +1,6 @@
 import os
 
-path = '/comp_robot/linjing/data/Motion_Generation/AMASS/SMPLX_G/amass_data'
+path = '/mnt/data/yuhaojiang/dataset/AMASS_SMPLXN'
 name_table = {
     'BMLrub': 'BioMotionLab_NTroje',
     'DFaust': 'DFaust_67',

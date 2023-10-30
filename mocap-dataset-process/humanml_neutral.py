@@ -45,8 +45,9 @@ for pair in orig_flip_pairs:
     left_chain.append(pair[0])
     right_chain.append(pair[1])
 
-smplx_male_model_path = "./smplx/SMPLX_MALE.npz"
-smplx_female_model_path = "./smplx/SMPLX_FEMALE.npz"
+# smplx_male_model_path = "./smplx/SMPLX_MALE.npz"
+# smplx_female_model_path = "./smplx/SMPLX_FEMALE.npz"
+smplx_model_path = "./smplx/SMPLX_NEUTRAL.npz"
 
 
 def swap_left_right(data):
@@ -219,15 +220,8 @@ if __name__ == "__main__":
 
     bad_count = 0
 
-    smplx_male_model = SMPLX(
-        smplx_male_model_path,
-        num_betas=10,
-        use_pca=False,
-        use_face_contour=True,
-        batch_size=1,
-    ).cuda()
-    smplx_female_model = SMPLX(
-        smplx_female_model_path,
+    smplx_model = SMPLX(
+        smplx_model_path,
         num_betas=10,
         use_pca=False,
         use_face_contour=True,
@@ -256,6 +250,23 @@ if __name__ == "__main__":
             data = np.load(source_path)
             gender = data["gender"].item()
 
+            # if gender == "male":
+            #     smplx_model = SMPLX(
+            #         smplx_male_model_path,
+            #         num_betas=10,
+            #         use_pca=False,
+            #         use_face_contour=True,
+            #         batch_size=1,
+            #     ).cuda()
+            # elif gender == "female":
+            #     smplx_model = SMPLX(
+            #         smplx_female_model_path,
+            #         num_betas=10,
+            #         use_pca=False,
+            #         use_face_contour=True,
+            #         batch_size=1,
+            #     ).cuda()
+
             new_name = index_file.loc[i]["new_name"]
             start_frame = index_file.loc[i]["start_frame"]
             end_frame = index_file.loc[i]["end_frame"]
@@ -278,10 +289,7 @@ if __name__ == "__main__":
 
             pose = process_pose(pose)
 
-            if gender == "male":
-                pose = face_z_align(pose, smplx_male_model)
-            elif gender == "female":
-                pose = face_z_align(pose, smplx_female_model)
+            pose = face_z_align(pose, smplx_model)
 
             if pose is None:
                 bad_count += 1

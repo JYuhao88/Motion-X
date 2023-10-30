@@ -35,45 +35,52 @@ def transform_motions(data):
 
     down_sample = int(fps / ex_fps)
 
-    frame_number = data["body"]["params"]["transl"].shape[0]
+    # frame_number = data["body"]["params"]["transl"].shape[0]
+    frame_number = data["trans"].shape[0]
 
     fId = 0  # frame id of the mocap sequence
     pose_seq = []
 
     for fId in range(0, frame_number, down_sample):
-        pose_root = data["body"]["params"]["global_orient"][fId : fId + 1]
+        # pose_root = data['body']['params']['global_orient'][fId:fId+1]
+        pose_root = data["root_orient"][fId : fId + 1]
         pose_root = (
             compute_canonical_transform(torch.from_numpy(pose_root))
             .detach()
             .cpu()
             .numpy()
         )
-        pose_body = data["body"]["params"]["body_pose"][fId : fId + 1]
+        # pose_body = data['body']['params']['body_pose'][fId:fId+1]
+        pose_body = data["pose_body"][fId : fId + 1]
 
-        pose_left_hand = data["lhand"]["params"]["fullpose"][fId : fId + 1]
-        pose_right_hand = data["rhand"]["params"]["fullpose"][fId : fId + 1]
+        # pose_left_hand = data['lhand']['params']['fullpose'][fId:fId+1]
+        # pose_right_hand = data['rhand']['params']['fullpose'][fId:fId+1]
+        pose_hand = data["pose_hand"][fId : fId + 1]
 
-        pose_jaw = data["body"]["params"]["jaw_pose"][fId : fId + 1]
+        # pose_jaw = data['body']['params']['jaw_pose'][fId:fId+1]
+        pose_jaw = data["pose_jaw"][fId : fId + 1]
 
         ####grab expression is 10-dim, so we use zeros
 
         pose_expression = np.zeros((1, 50))
         pose_face_shape = np.zeros((1, 100))
 
-        pose_trans = data["body"]["params"]["transl"][fId : fId + 1]
+        # pose_trans = data['body']['params']['transl'][fId:fId+1]
+        pose_trans = data["trans"][fId : fId + 1]
 
-        pose_body_shape = np.zeros((1, 10))
+        # pose_body_shape = np.zeros((1, 10))
+        betas = data["betas"][:10][None, :]
+        # pose = np.concatenate((pose_root, pose_body, pose_left_hand, pose_right_hand, pose_jaw, pose_expression, pose_face_shape, pose_trans, pose_body_shape), axis=1)
         pose = np.concatenate(
             (
                 pose_root,
                 pose_body,
-                pose_left_hand,
-                pose_right_hand,
+                pose_hand,
                 pose_jaw,
                 pose_expression,
                 pose_face_shape,
                 pose_trans,
-                pose_body_shape,
+                betas,
             ),
             axis=1,
         )
@@ -100,8 +107,24 @@ def process_text(text):
 
 if __name__ == "__main__":
     for case_path in tqdm(findAllFile("./GRAB")):
+        if case_path.endswith("neutral_stagei.npz"):
+            continue
         data = np.load(case_path, allow_pickle=True)
-        data = {k: data[k].item() for k in data.files}
+        # data = {k: data[k].item() for k in data.files if k not in ["gender", "surface_model_type", "labels", "labels_obs", "marker_meta", "latent_labels", "markers_latent_vids"]}
+        # data = {k: data[k].item() for k in data.files if data[k].dtype in [np.dtype('float32'), np.dtype('int32'), np.dtype('int64'), np.dtype('float64')]}
+        # for k in data.files:
+        #     print(k, data[k].item())
+        # data_dict = {}
+        # for k in data.files:
+        #     if k in [
+        #         "root_orient",
+        #         "pose_body",
+        #         "pose_hand",
+        #         "pose_jaw",
+        #         "trans",
+        #         "betas",
+        #     ]:
+        #         data_dict[k] = data[k].tolist()
 
         data = transform_motions(data)
 
