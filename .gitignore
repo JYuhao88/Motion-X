@@ -1,0 +1,8 @@
+datasets/
+EgoBody/
+EgoBody_motion/
+EgoBody_txt/
+GRAB/
+GRAB_motion/
+GRAB_text/
+*.pyc
